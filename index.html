@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#0f402c">
+  <title>قوائم الطلاب وسجل الدرجات - مدرسة ذات الصواري</title>
+  
+  <!-- مكتبة الأيقونات Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  
+  <!-- خطوط عربية متنوعة من Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700&family=Lateef:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Readex+Pro:wght@400;600;700&family=Tajawal:wght@400;500;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- مكتبات التصدير للصور والـ PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg-cream: #faf7ee;
+      --border-dark: #274536;
+      --header-green: #0f402c;
+      --header-green-light: #1b5b40;
+      --text-dark: #1e3328;
+      --wa-color: #25d366;
+      --word-color: #185abd;
+      --active-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--active-font);
+    }
+
+    body {
+      background-color: #dbe3de;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      gap: 25px;
+      min-height: 100vh;
+    }
+
+    /* شريط الأدوات العلوي المتجاوب */
+    .master-toolbar {
+      position: sticky;
+      top: 10px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      padding: 10px 20px;
+      border-radius: 50px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      border: 2px solid var(--border-dark);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 950px;
+    }
+
+    .font-selector-box, .search-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #eaf3ed;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 25px;
+      padding: 4px 12px;
+    }
+
+    .font-selector-box label, .search-box label {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--header-green);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .font-selector-box select, .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 13.5px;
+      font-weight: bold;
+      color: var(--text-dark);
+      padding: 3px;
+    }
+
+    .search-box input {
+      width: 130px;
+    }
+
+    .stats-badge {
+      background: var(--header-green);
+      color: #ffffff;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* حاويات الصفحات */
+    #pages-root {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 35px;
+    }
+
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      width: 100%;
+    }
+
+    .page-scroll-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .page-toolbar {
+      width: 100%;
+      max-width: 794px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background-color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-dark);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      color: #ffffff;
+      border: 2px solid #082419;
+      padding: 8px 16px;
+      font-size: 13.5px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-page-png {
+      background-color: var(--header-green-light);
+    }
+
+    .btn-delete-page {
+      background-color: #7a1c17;
+      border-color: #46100d;
+    }
+
+    .btn-delete-page:hover {
+      background-color: #a8231d;
+    }
+
+    .btn-all-pdf {
+      background-color: #b3261e;
+      border-color: #601410;
+      font-size: 14px;
+      padding: 9px 20px;
+      border-radius: 30px;
+    }
+
+    .btn-all-pdf:hover {
+      background-color: #d32f2f;
+    }
+
+    .btn-add-page {
+      background-color: #1b5b40;
+      border-color: #0f402c;
+      font-size: 14.5px;
+      padding: 10px 22px;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(27, 91, 64, 0.3);
+    }
+
+    .btn-add-page:hover {
+      background-color: #0f402c;
+    }
+
+    .btn-reset-all {
+      background-color: #c0392b;
+      border-color: #78281f;
+      font-size: 14.5px;
+      padding: 10px 22px;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
+    }
+
+    .btn-reset-all:hover {
+      background-color: #e74c3c;
+    }
+
+    /* ورقة الطباعة الرسمية قياس A4 */
+    .page-container {
+      width: 794px;
+      min-width: 794px;
+      min-height: 1120px;
+      background-color: var(--bg-cream);
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      border: 3px solid var(--border-dark);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .school-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #9c27b0;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 4px 0 14px 0;
+    }
+
+    .ornament::before,
+    .ornament::after {
+      content: "";
+      height: 2px;
+      background-color: var(--border-dark);
+      flex: 1;
+    }
+
+    .diamond-icon {
+      width: 14px;
+      height: 14px;
+      background-color: var(--border-dark);
+      transform: rotate(45deg);
+      border: 2px solid var(--bg-cream);
+      outline: 2px solid var(--border-dark);
+    }
+
+    .top-header-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .header-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 2px solid var(--border-dark);
+      border-radius: 20px;
+      padding: 4px 14px;
+    }
+
+    .header-box label {
+      font-weight: bold;
+      font-size: 16px;
+      color: var(--text-dark);
+      margin-left: 8px;
+    }
+
+    .header-box input {
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--text-dark);
+      text-align: center;
+    }
+
+    .tables-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .column-table {
+      border: 1.5px solid var(--border-dark);
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #ffffff;
+    }
+
+    .col-header {
+      background-color: var(--header-green);
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 14px;
+      text-align: center;
+      padding: 8px 0;
+      border-bottom: 2px solid var(--border-dark);
+    }
+
+    .col-header div:first-child {
+      border-left: 1.5px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .row-item {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      border-bottom: 1px solid #d2ded7;
+      height: 38px;
+      position: relative;
+    }
+
+    .row-item:last-child {
+      border-bottom: none;
+    }
+
+    .row-item input {
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      height: 100%;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .row-item .idx-box {
+      border-left: 1px solid #d2ded7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+    }
+
+    .row-item .idx-box input {
+      text-align: center;
+      border: 1px solid #c2d1c9;
+      border-radius: 6px;
+      width: 32px;
+      height: 26px;
+      background-color: #ffffff;
+      pointer-events: none;
+    }
+
+    .row-item .name-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .row-item .name-box input {
+      text-align: center;
+      padding: 0 4px;
+      white-space: nowrap;
+    }
+
+    .row-item:hover {
+      background-color: #f3f8f5;
+    }
+
+    .row-item input:focus {
+      background-color: #e8f5ec;
+    }
+
+    .row-item.search-match {
+      background-color: #fff3cd !important;
+      outline: 2px solid #ffc107;
+      z-index: 5;
+    }
+
+    .btn-insert-row {
+      display: none;
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #1b5b40;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .row-item:focus-within .btn-insert-row {
+      display: flex;
+    }
+
+    .btn-insert-row:hover {
+      background: #0f402c;
+    }
+
+    .page-footer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      gap: 6px;
+    }
+
+    .book-page-number {
+      font-family: 'Times New Roman', serif;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--header-green);
+      letter-spacing: 2px;
+    }
+
+    .dev-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(135deg, #0f402c, #1b5b40);
+      color: #ffffff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #274536;
+      box-shadow: 0 2px 5px rgba(15, 64, 44, 0.2);
+    }
+
+    .dev-badge .dev-icon {
+      font-size: 11px;
+      background-color: #faf7ee;
+      color: #0f402c;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dev-badge .dev-name {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* الأزرار العائمة */
+    .floating-buttons-wrapper {
+      position: fixed;
+      bottom: 25px;
+      left: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 9999;
+    }
+
+    .floating-btn {
+      width: 55px;
+      height: 55px;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .floating-whatsapp {
+      background-color: var(--wa-color);
+      font-size: 32px;
+      animation: wa-pulse 2s infinite;
+    }
+
+    .floating-whatsapp:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+      color: #ffffff;
+    }
+
+    .floating-word {
+      background-color: var(--word-color);
+    }
+
+    .floating-word:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(24, 90, 189, 0.5);
+    }
+
+    .floating-btn .tooltip-text {
+      visibility: hidden;
+      opacity: 0;
+      background-color: #1e3328;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 6px 12px;
+      position: absolute;
+      left: 65px;
+      font-size: 12px;
+      font-weight: bold;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .floating-btn:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    @keyframes wa-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+    }
+
+    .bottom-controls {
+      display: flex;
+      flex-direction: row;
+      gap: 15px;
+      align-items: center;
+      justify-content: center;
+      margin: 15px 0 50px 0;
+      flex-wrap: wrap;
+    }
+
+    /* التجاوب مع شاشات الجوال */
+    @media (max-width: 768px) {
+      body {
+        padding: 8px;
+        gap: 20px;
+      }
+      .master-toolbar {
+        border-radius: 20px;
+        padding: 10px;
+        gap: 8px;
+      }
+      .font-selector-box, .search-box {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .search-box input {
+        width: 100%;
+      }
+      .page-toolbar {
+        border-radius: 6px;
+        padding: 6px 10px;
+      }
+      .floating-buttons-wrapper {
+        bottom: 15px;
+        left: 15px;
+        gap: 10px;
+      }
+      .floating-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+      }
+      .floating-whatsapp {
+        font-size: 26px;
+      }
+    }
+
+    /* تنسيق الطباعة المباشرة */
+    @media print {
+      body {
+        padding: 0;
+        background: none;
+      }
+      .master-toolbar, .page-toolbar, .floating-buttons-wrapper, .bottom-controls, .btn-insert-row {
+        display: none !important;
+      }
+      .page-scroll-container {
+        overflow: visible !important;
+      }
+      .page-wrapper {
+        page-break-after: always;
+        break-after: page;
+      }
+      .page-container {
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- شريط التحكم العلوي المتجاوب -->
+  <div class="master-toolbar">
+    <div class="stats-badge" id="studentStats">
+      <i class="fa-solid fa-users"></i> الطلاب: 0
+    </div>
+
+    <div class="search-box">
+      <label for="searchInput"><i class="fa-solid fa-magnifying-glass"></i></label>
+      <input type="text" id="searchInput" placeholder="بحث عن طالب..." oninput="searchStudents(this.value)">
+    </div>
+
+    <div class="font-selector-box">
+      <label for="fontSelect"><i class="fa-solid fa-font"></i> الخط:</label>
+      <select id="fontSelect" onchange="changeWebsiteFont(this.value)">
+        <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">الخط الافتراضي (Tahoma / Segoe)</option>
+        <option value="'Cairo', sans-serif">خط كوفيك (Cairo)</option>
+        <option value="'Tajawal', sans-serif">خط تجوال (Tajawal)</option>
+        <option value="'Almarai', sans-serif">خط المراعي (Almarai)</option>
+        <option value="'Alexandria', sans-serif">خط الإسكندرية (Alexandria)</option>
+        <option value="'Readex Pro', sans-serif">خط ريديكس / الجزيرة (Readex Pro)</option>
+        <option value="'Noto Naskh Arabic', serif">خط النسخ الأصلي (Noto Naskh)</option>
+        <option value="'Amiri', serif">الخط الأميري (Amiri)</option>
+        <option value="'Aref Ruqaa', serif">خط الرقعة الفني (Aref Ruqaa)</option>
+        <option value="'Vazirmatn', sans-serif">خط وزيرمتن الهندسي (Vazirmatn)</option>
+        <option value="'Lateef', serif">خط لطيف التقليدي (Lateef)</option>
+      </select>
+    </div>
+
+    <button class="btn btn-all-pdf" onclick="downloadModifiedPagesAsPDF()">
+      <i class="fa-solid fa-file-pdf"></i> تصدير PDF
+    </button>
+  </div>
+
+  <!-- حاوية الصفحات -->
+  <div id="pages-root"></div>
+
+  <!-- شريط الإجراءات السفلي -->
+  <div class="bottom-controls">
+    <button class="btn btn-add-page" onclick="addNewPage()">
+      <i class="fa-solid fa-plus-circle"></i> إضافة شعبة جديدة
+    </button>
+    <button class="btn btn-reset-all" onclick="resetAllToOriginal()">
+      <i class="fa-solid fa-rotate-left"></i> إعادة ضبط البيانات
+    </button>
+  </div>
+
+  <!-- الأزرار العائمة -->
+  <div class="floating-buttons-wrapper">
+    <button type="button" class="floating-btn floating-word" onclick="exportToWordDocx()" title="حفظ كملف وورد">
+      <i class="fa-solid fa-file-word"></i>
+      <span class="tooltip-text">حفظ كملف Word (سجل الدرجات) 📄</span>
+    </button>
+
+    <a href="https://wa.me/963949174057" target="_blank" class="floating-btn floating-whatsapp" title="تواصل واتساب مع المطور علي الصالح">
+      <i class="fa-brands fa-whatsapp"></i>
+      <span class="tooltip-text">المطور علي الصالح 💬</span>
+    </a>
+  </div>
+
+  <script>
+    const ROWS_PER_COLUMN = 19;
+    const COLUMNS_PER_PAGE = 3;
+    const ITEMS_PER_PAGE = 57; 
+    const STORAGE_KEY = 'student_lists_state_data_pdf_v1';
+    const FONT_STORAGE_KEY = 'student_lists_active_font';
+
+    // البيانات الأصلية للشعب الـ 10
+    const initialPdfData = [
+      {
+        classVal: "السابع",
+        sectionVal: "الأولى",
+        students: [
+          "إبراهيم أحمد دلة", "إبراهيم عبد العزيز بكور", "إبراهيم عبد الغني قصاب", "إبراهيم خالد أرملي", "إبراهيم طارق السقا", "إبراهيم عمر الشيخ", "أبي عدنان الناصر", "أحمد أكرم كشفة", "أحمد أياد الحويري", "أحمد بلال الشيخو", "أحمد جهاد قصاب", "أحمد حسين السعيد", "أحمد رياض الناصر", "أحمد رامز رستناوي", "أحمد سامي جناح", "أحمد سليم بكور", "أحمد سليم حسون", "أحمد سليم شنات", "أحمد عبد الله الضاهر",
+          "أحمد عدنان الضحيك", "أحمد عدنان السراقبي", "أحمد غازي المعروف", "أحمد فراس المروان", "أحمد فراس مسحة", "أحمد فاروق بكور", "أحمد فجر اليوسف", "أحمد فؤاد المصري", "أحمد محمود خزاعي", "أحمد محمود ضحيك", "أحمد محمود الصالح", "أحمد محمود النحلاوي", "أحمد محمد الشعبان", "أحمد محمد الشيخ", "أحمد محمد قيسون", "أحمد منير صويص", "أحمد نادر بكور", "أحمد نادر المصري", "أحمد ناصر الراشد",
+          "أحمد وائل المرعي", "أحمد أمين الضاهر", "أدهم حسين الشيخ خليل", "اسحق حسين طه", "إسلام محمد بلال بكور"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "الثانية",
+        students: [
+          "أسامة زيد حديد", "أسامة عادل حجل", "أسامة عبد الرحمن الصالح", "أسامة نادر جوخدار", "إسماعيل إبراهيم النجار", "إسماعيل خالد الدقة", "أمجد أحمد الناجي", "أكرم مصطفى المصري", "أمجد عبد المالك طحان", "أمجد موفق قشة", "أمجد عبد الحميد محيميد", "أمين فايز قصاب", "أمين كفاح النعسان", "أمين كفاح النعسان", "أمين مدين الخطيب", "إياد تيسير عبد اللطيف", "أياد طلال شنات", "إياد عماد حويري", "أيمن حسان الضاهر",
+          "أيمن عزيز المولس", "أيهم حسام الناصر", "أيوب عبد الناصر الأشقر", "باسل أيمن المرعي", "براء باسل الأيوبي", "براء محمد الجمعة", "براء محمد الخطيب", "بسام محمود النبهان", "بكر رسول الصعيك", "بلال جلال النكور", "بلال أحمد درويش", "بلال محمد قيسون", "تمام محمد قدور", "تميم محمد عتون", "تميم مصطفى مصطفى", "توفيق سليمان الرسو", "ثائر مهند دياب", "جبرائيل حسان قدور", "جعفر محمد العويشة",
+          "جعفر محمود العلي", "جعفر محمود الكفت", "جلال جهاد العزو", "جهاد محمد حدود", "جهاد زكريا أرملي"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "الثالثة",
+        students: [
+          "حازم جاسم المحمد", "حازم ريد النميري", "حازم عبد العزيز النميري", "حازم محمد العلوش", "حامد ميسر صويص", "حسام أحمد المرعي", "حسام محمد شحود", "حسام وسيم عرفان", "حسام ياسر الخطيب", "حسن محمد حديد", "حسين فواز الفكاري", "حسين محمد شنات", "حمزة إبراهيم النعسان", "حمزة بركات", "حمزة توفيق الناجي", "حمزة عبد الباسط الضحيك", "حمزة عبد الرحمن السيد", "حمزة عبد العليم المروان", "حمزة محمد بكور",
+          "حمزة محمد قدور", "حمزة مرهف أباظة", "حمزة ممدوح قيسون", "حمادة حمزة الروكاري", "حمزة يوسف جاموس", "حذيفة عبد الوهاب الخطيب", "حذيفة سليم خشفة", "حمود سامر الدرنب", "خالد أحمد علوش", "خالد أحمد الضحيك", "خالد أحمد ميزاه نازي", "خالد فيصل يحيى", "خالد عبد المجيد جمعة", "خالد محمود العلوش", "خالد محمد عتون", "خالد مصطفى المحمد", "خليل إبراهيم بخشين", "دحام أحمد البلوش", "رامز محمود يزنب",
+          "ربيع بسام الكفت", "رضوان طه النكور", "رواد محمد العروان", "زكريا علاء النجار", "زكريا فيصل طه", "زكريا محمد الدريعي", "زكريا خالد واكية", "زيد الحاج عيسى", "زيد خزاعل المرعي"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "الرابعة",
+        students: [
+          "زيد تايه بخشين", "زين عبد الكافي جمعة", "زين الدين أحمد النوادي", "زين يحيى صويص", "زين نضال حسون", "سامر أحمد شحود", "سامر تركي درنب", "سعد عبد المجيد خالد", "سفيان عزام الناجي", "سليم أحمد ميزاه نازي", "سليم عبد السلام الكناني", "سليم سامي المرعي", "سليم محمود المدور", "سليم خالد الغزو", "سليمان درنب", "سليمان عبد الرحمن حريتاني", "سليمان عبد الناصر قصاب", "سليمان بهنان الجمعة", "سليمان محمود قشة الأمير",
+          "سليمان محمد خير الدولت", "سليمان خالد اليونس", "سليم عبد العزيز الريحاوي", "سرين زيد الدين الخطيب", "شحود إبراهيم أرملي", "صالح إبراهيم الشحود", "صالح عيسى الخطيب", "صالح محمد الحاير التركماني", "ضياء زياد علوش", "ضياء محمود ميزاه نازي", "ضياء وسام واكية", "طارق جهاد النعسان", "طارق محمد درويش", "طارق زكريا قيسون", "طلحة الوزير", "طه راسم الطه", "عامر أحمد جويري", "عامر صهيب الطالب", "عالم عبد الرحمن الضاهر الخطيب",
+          "عبادة محمد طيب الضاهر الخطيب", "عبد الجبار يوسف الخالد", "عبد الحي عبد الوهاب الضاهر", "عبد الحي محمد خير الخطيب", "عبد الحميد عبد المنعم اليوسف", "عبد الحميد عصام النحلاوي", "عبد الحميد ماجد خليل", "عبد الحميد محمود النجار", "عبد الرحمن حسين السراقبي", "عبد الستار أحمد الباشان", "عبيدة عبد العليم عتون"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "الخامسة",
+        students: [
+          "عبد الحميد محمد المدور", "عبد الحميد عبد الواحد الناجي", "عبد الحكيم محمد طه", "عبد الرحمن حسن الخالد", "عبد الرحمن جمعة الخلف", "عبد الرحمن خالد العكلا", "عبد الرحمن عبد الهادي العلوش", "عبد الرحمن فادي العلي", "عبد الرحمن كمال قيسون", "عبد الرحمن مازن القدور", "عبد الرحمن محمد سليم الضحيك", "عبد الرحمن ثائر العزو", "عبد الرحمن ياسر الشحود", "عبد الرزاق أحمد الضحيك", "عبد الرحيم بكور", "عبد الرزاق عبد المحيد جمعة", "عبد الرزاق طريق طه", "عبد السلام عدي خشفة", "عبد السلام قشة الأمير",
+          "عبد الصمد زياد الشيخ حمود", "عبد العزيز أسامة مرزة", "عبد العليم أحمد واكية", "عبد العليم فادي القاسم", "عبد الغني ممدوح صويص", "عبد الكريم أحمد الضحيك", "عبد الكريم سامر النعسان", "عبد الكريم محمد سعيد الضاهر", "عبد الكريم فوار طه", "عبد الكريم ياسر ديني", "عبد اللطيف أحمد أو لربو", "عبد اللطيف عمار قيسون", "عبد اللطيف ماجد النعسان", "عبد اللطيف عبد الهادي الصالح", "عبد الله عبد الرحمن الساطي", "عبد الملك عبد الله بكور", "عبد الملك خالد فاروط", "عبد المالك فادي شنات", "عبد المالك عبد المؤمن الضحيك",
+          "عبد المهين عادل السعيد", "عبد المعين كفاح النحلاوي", "عبد المنعم جهاد سوبل", "عبد المنعم عدنان بكور", "عبد الناصر عبد الهادي الضحيك", "عبد الناصر واكية", "عبد الناصر طلال شنات", "عبيدة عبد العليم الضحيك", "علي محمد المجيميد"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "السادسة",
+        students: [
+          "عبد الله محمود الضحيك", "عبد الله بسام الخطيب", "عبد الله حمادة الناجي", "عبد الله زياد الضاهر", "عبد الله فيصل خشفة", "عبد الله محمد بحقة", "عبد الله محمود واكية", "عبد الله نبيل بكور", "عبد الله يحيى صويص", "عبد الله خالد العز الدين", "عبد الله علي حديد", "عبد الله محمد بكور", "عبد الهادي عبد السلام المرعي", "عبد الهادي حفيظ جمعة", "عبد الوهاب عبد الوهاب الهاشم", "عبد الكافي عبد الكافي الصالح", "عبدو عبد الرزاق الجمعة", "عبدو ياسر الصالح", "عدي أسامة العبيد",
+          "عدي نضال شنات", "عدنان عبد الرحمن عويجان", "عدنان عماد بدوي", "عدنان حمود الناجي", "عدنان محمد الباشان", "عدنان محمد خير كيال", "عدنان محمد قدور", "عدنان شادي الطحان", "عدنان يحيى الحجواني", "عثمان عبد الرحمن قشة", "عز الدين عبد الكريم حاج أحمد العز الدين", "عز الدين محمد قيسون", "علام أحمد بكور", "علاء أحمد علوش", "علاء عبيدة الطحان", "علاء عبد العظيم العبيد", "علاء فواز بكور", "علاء يحيى الضحيك", "علي خالد السراقبي",
+          "علي زكريا العلي", "علي علاء الدين الشيخ حمود", "علي ماهر المرعي", "عماد حمدو العقيدي", "عماد جهاد القدور", "عمار أشرف الخليل", "عمار خالد جمعة", "عمار نبيل بكور"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "السابعة",
+        students: [
+          "عمر إسماعيل الدقو", "عمر عبد الناصر ميزاه نازي", "عمر عدنان الفرعي", "عمر هشام بكور", "عمر مهيب العلوش", "عمر أحمد المخزوم", "عمرو بلال قدور", "عمرو محمد عويجان", "عمران مروان جمعة", "غازي محمد خضر الحيلاوي", "غيث أحمد الأحمد", "غيث ماهر عويجان", "فاروق جعفر يحيى", "فضل الله محمود بحقة", "فهد حسام شنات", "فرحان علي فنجان", "فيصل حمود المصري", "فؤاد مصطفى المصطفى", "قاسم رفعت خزاعي",
+          "قاسم عمر الأيوبي", "قاسم يوسف الكاخي", "قتيبة عدنان المصري", "كمال الدين أحمد عتون", "ليث حازم الخليل", "ليث مهند صويص", "ليث أحمد القاسم", "لقمان عبد الكريم قيسون", "ماجد عمر بكور", "ماجد عبد الله الجوخدار", "مازن أحمد الضحيك", "مازن بسام العبيد", "ماهر أحمد الدرنب", "ماهر عبد الرحمن الضاهر", "ماهر طه ميزاه نازي", "ماهر أحمد المحمد", "مالك أياد الزوكاري", "مالك عارف الصويص", "مبارك محمد الضحيك",
+          "مجد فادي الضحيك", "مجد فادي طه", "محسن محمد المرعي", "محمد أحمد جوخدار", "محمد أحمد حويري", "محمد أحمد قيسون", "محمد جهاد عبد العزيز بكور", "محمد يوسف طحان", "مصطفى محمد الجوخدار"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "الثامنة",
+        students: [
+          "محمد أحمد المحمد", "محمد أنس الدريعي", "محمد بلال الضحيك", "محمد بلال قصي مروان", "محمد توفيق سليمان الرسو", "محمد حسان بكور", "محمد حسان قدور", "محمد حسن الشيخ", "محمد حسام عرفان", "محمد خير بشار بربور", "محمد خالد العلوش", "محمد خالد عتون", "محمد ربيع عبد الستار الناجي", "محمد رسلان جمعة", "محمد زين حسن النعسان", "محمد سامي الخاروف", "محمد سليمان عبد الرزاق الدقة", "محمد سليمان عدور", "محمد سليم ديب بيلباوي",
+          "محمد سليم الشيخ", "محمد عبد الباسط المحمد", "محمد عبد الحميد اليونس", "محمد عبد الحكيم العلي", "محمد عبد السلام جمعة", "محمد عبد العزيز العلوش", "محمد عبد المعين الضاهر", "محمد عبد المعين المرعي", "محمد عبد المجيد الضاهر", "محمد عبد الله شنات", "محمد عدنان كيال", "محمد عدنان الطحان", "محمد علي مروان الضاهر", "محمد علاء أباظة", "محمد علاء جاموس", "محمد ماجد بكور", "محمد ماجد الرسو", "محمد محمود جمعة", "محمد محمود طه",
+          "محمد محمود عويجان", "محمد مزيد الخطيب", "محمد أحمد الضاهر الخطيب", "محمد عمر عبد القادر", "محمد طلال قدور", "محمد أحمد شنات", "محمد فائق أحمد الشيخ", "محمد أيمن كيال", "محمد خالد العلي"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "التاسعة",
+        students: [
+          "محمد سليمان الخطيب", "محمد مختار جهاد الأشقر", "محمد نادر جوخدار", "محمد نضال أنس الضاهر", "محمد نور بشار علوش", "محمد نور سليمان عبد القادر", "محمد نور عبد الحليم الشيخ", "محمد نور وائل الشيخ", "محمد نور يونس الخطيب", "محمد هيثم أرملي", "محمد هائل حديد", "محمد وائل قشة", "محمد ياسر النعسان", "محمد عبد الباسط المحمد", "محمد عبد الباسط المرعي", "محمود أحمد جمعة", "محمود اياد الخطيب", "محمود حمدو الأشقر", "محمود حمزة قجة",
+          "محمود سليمان بكور", "محمود طه المرعي", "محمود عدنان الطحان", "محمود عبد الكافي الصالح", "محمود محمد صويص", "محمود محمد عبد القادر", "محمود موسى بجقة", "محمود ناصر الراجح", "محمود ناصر علوش", "محي الدين عامر النحلاوي", "مدين أيمن صويص", "مدين زيد حديد", "مرهف منهل الخطيب", "مروان فيصل الأحمد", "مروان محمود الدالي الأحمد", "مصطفى بشار كريم", "مصطفى محمد سعيد الرسم", "معاذ أكرم الحاج عيسى", "معاوية نزار خزاعي",
+          "معتصم أحمد الناجي", "معتصم بالله محمود المدور", "منير عدنان شنات", "منذر خالد الخالد", "مهند لؤي السويد", "موسى زياد الخطيب", "مؤيد سليم الضحيك", "مؤيد ماجد صويص"
+        ]
+      },
+      {
+        classVal: "السابع",
+        sectionVal: "العاشرة",
+        students: [
+          "نادر ماهر الضميري", "ناصر عبد السلام بكور", "نبيل أحمد الشمالي", "ناصر خالد القدور", "نصر فايز الدويري", "نضال عبد الرحمن الضحيك", "نضال عبد الكريم حديد", "نهاد وليد معيشي", "هاشم محمد أمين صويص", "هزاع أيمن الضاهر", "هيثم محمد أياد الناجي", "وليد بسام النبهان", "وسام أحمد الرستناوي", "وسام تيسير غنام", "يامن أحمد الدرنب", "يامن خالد الأشقر", "يامن ماجد عدرة", "يامن عبد الحميد علوش", "يامن حسان الرحال",
+          "يمان أحمد منهل العلي", "يمان محمد حمشو", "يحيى أحمد طه", "يحيى أمين النعسان", "يحيى زكريا خشفة", "يحيى طاهر النعسان", "يحيى محمد الضاهر", "يحيى يوسف الجاموس", "يزن حسان المرعي", "يزن عبد الحكيم رستناوي", "يزن عبد الاله العكلا", "يزن محمود الدقة", "يزن المصري", "يوسف إبراهيم بخشين", "يوسف خضر السيد", "يوسف عدنان عبد القادر", "يوسف عدنان صويص", "يوسف عبد الرزاق الرضوان", "يوسف محمد المحيميد",
+          "يوسف محمد النحلاوي", "يوسف عمر العزو", "يونس زكريا بكور", "يونس محمد بسام جاموس", "يعقوب جهاد الضاهر", "يعقوب محمد بسام الزعبي"
+        ]
+      }
+    ];
+
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+
+    function getTextWidth(text, font) {
+      measureCtx.font = font;
+      return measureCtx.measureText(text).width;
+    }
+
+    function changeWebsiteFont(fontFamily, shouldSave = true) {
+      document.documentElement.style.setProperty('--active-font', fontFamily);
+      if (shouldSave) {
+        localStorage.setItem(FONT_STORAGE_KEY, fontFamily);
+      }
+      const select = document.getElementById('fontSelect');
+      if (select && select.value !== fontFamily) {
+        select.value = fontFamily;
+      }
+      setTimeout(() => {
+        document.querySelectorAll('.student-name-input').forEach(adjustFontSize);
+      }, 50);
+    }
+
+    function adjustFontSize(input) {
+      if (!input || !input.classList.contains('student-name-input')) return;
+
+      const baseSize = 13.5; 
+      const minSize = 9.0;   
+
+      const text = input.value;
+      if (!text || text.trim() === '') {
+        input.style.fontSize = baseSize + 'px';
+        return;
+      }
+
+      const currentFont = getComputedStyle(document.documentElement).getPropertyValue('--active-font') || 'sans-serif';
+      const maxAllowedWidth = 185; 
+      const naturalWidth = getTextWidth(text, `600 ${baseSize}px ${currentFont}`);
+
+      if (naturalWidth <= maxAllowedWidth) {
+        input.style.fontSize = baseSize + 'px';
+        return;
+      }
+
+      let currentSize = baseSize;
+      while (currentSize > minSize) {
+        currentSize -= 0.5;
+        const width = getTextWidth(text, `600 ${currentSize}px ${currentFont}`);
+        if (width <= maxAllowedWidth) {
+          break;
+        }
+      }
+
+      input.style.fontSize = currentSize + 'px';
+    }
+
+    function updateStudentStats() {
+      let count = 0;
+      document.querySelectorAll('.student-name-input').forEach(input => {
+        if (input.value && input.value.trim() !== '') count++;
+      });
+      const badge = document.getElementById('studentStats');
+      if (badge) {
+        badge.innerHTML = `<i class="fa-solid fa-users"></i> الطلاب: ${count}`;
+      }
+    }
+
+    function saveStateToStorage() {
+      const wrappers = document.querySelectorAll('.page-wrapper');
+      const pagesData = [];
+
+      wrappers.forEach(wrap => {
+        const classVal = wrap.querySelector('.class-input')?.value || '';
+        const sectionVal = wrap.querySelector('.section-input')?.value || '';
+        const students = [];
+
+        wrap.querySelectorAll('.student-name-input').forEach(input => {
+          students.push(input.value);
+        });
+
+        pagesData.push({ classVal, sectionVal, students });
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(pagesData));
+      updateStudentStats();
+    }
+
+    function searchStudents(query) {
+      const cleanQuery = query.trim().toLowerCase();
+      document.querySelectorAll('.row-item').forEach(item => {
+        item.classList.remove('search-match');
+        if (cleanQuery !== '') {
+          const input = item.querySelector('.student-name-input');
+          if (input && input.value.toLowerCase().includes(cleanQuery)) {
+            item.classList.add('search-match');
+          }
+        }
+      });
+    }
+
+    function createPageElement(pageNumber, initialData = null) {
+      const pageWrapper = document.createElement('div');
+      pageWrapper.className = 'page-wrapper';
+      pageWrapper.setAttribute('data-page-num', pageNumber);
+
+      pageWrapper.innerHTML = `
+        <div class="page-toolbar">
+          <span style="font-weight: bold; color: var(--header-green); font-size: 14px;">
+            📌 ورقة الشعبة (${pageNumber})
+          </span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-page-png" onclick="captureAndDownloadPage(this)">
+              <i class="fa-solid fa-image"></i> حفظ كـ PNG
+            </button>
+            <button class="btn btn-delete-page" onclick="deletePage(this)">
+              <i class="fa-solid fa-trash-can"></i> حذف
+            </button>
+          </div>
+        </div>
+      `;
+
+      const scrollContainer = document.createElement('div');
+      scrollContainer.className = 'page-scroll-container';
+
+      const pageContainer = document.createElement('div');
+      pageContainer.className = 'page-container';
+
+      let columnsHtml = '';
+      let currentNumber = 1;
+
+      for (let c = 0; c < COLUMNS_PER_PAGE; c++) {
+        let rowsHtml = '';
+        for (let r = 0; r < ROWS_PER_COLUMN; r++) {
+          const indexInPage = currentNumber - 1;
+          const studentVal = initialData?.students?.[indexInPage] || '';
+
+          rowsHtml += `
+            <div class="row-item">
+              <div class="idx-box">
+                <input type="text" value="${currentNumber}" tabindex="-1" readonly>
+              </div>
+              <div class="name-box">
+                <input type="text" 
+                       class="student-name-input" 
+                       value="${escapeHtml(studentVal)}" 
+                       data-default-placeholder="اسم الطالب..."
+                       placeholder="اسم الطالب...">
+                <button type="button" class="btn-insert-row" title="إزاحة الطلاب وفتح خانة فارغة هنا" tabindex="-1" onmousedown="insertEmptyRow(this, event)">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          `;
+          currentNumber++;
+        }
+
+        columnsHtml += `
+          <div class="column-table">
+            <div class="col-header"><div>الرقم</div><div>اسم الطالب</div></div>
+            ${rowsHtml}
+          </div>
+        `;
+      }
+
+      const classValue = initialData?.classVal || 'السابع';
+      const sectionValue = initialData?.sectionVal || '';
+
+      pageContainer.innerHTML = `
+        <div>
+          <div class="school-title">مدرسة ذات الصواري</div>
+          <div class="ornament"><div class="diamond-icon"></div></div>
+
+          <div class="top-header-bar">
+            <div class="header-box">
+              <label>الصف:</label>
+              <input type="text" class="class-input" value="${escapeHtml(classValue)}" data-default-placeholder="اكتب الصف هنا" placeholder="اكتب الصف هنا">
+            </div>
+            <div class="header-box">
+              <label>الشعبة:</label>
+              <input type="text" class="section-input" value="${escapeHtml(sectionValue)}" data-default-placeholder="اكتب الشعبة هنا" placeholder="اكتب الشعبة هنا">
+            </div>
+          </div>
+
+          <div class="tables-wrapper">
+            ${columnsHtml}
+          </div>
+        </div>
+
+        <div class="page-footer-container">
+          <div class="ornament" style="margin-top: 14px; width: 100%;"><div class="diamond-icon"></div></div>
+          <div class="book-page-number">- ${pageNumber} -</div>
+          <div class="dev-badge">
+            <span class="dev-icon"><i class="fa-solid fa-code"></i></span>
+            <span class="dev-name">المطور علي الصالح</span>
+          </div>
+        </div>
+      `;
+
+      scrollContainer.appendChild(pageContainer);
+      pageWrapper.appendChild(scrollContainer);
+      pageWrapper.querySelectorAll('.student-name-input').forEach(adjustFontSize);
+
+      return pageWrapper;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function insertEmptyRow(btnOrInput, e = null) {
+      if (e) e.preventDefault();
+
+      const pageWrapper = btnOrInput.closest('.page-wrapper');
+      const allInputs = Array.from(pageWrapper.querySelectorAll('.student-name-input'));
+      
+      let targetInput = btnOrInput;
+      if (!btnOrInput.classList.contains('student-name-input')) {
+        targetInput = btnOrInput.closest('.name-box').querySelector('.student-name-input');
+      }
+
+      const targetIdx = allInputs.indexOf(targetInput);
+      if (targetIdx === -1) return;
+
+      for (let i = allInputs.length - 1; i > targetIdx; i--) {
+        allInputs[i].value = allInputs[i - 1].value;
+        adjustFontSize(allInputs[i]);
+      }
+
+      targetInput.value = '';
+      adjustFontSize(targetInput);
+      targetInput.focus();
+
+      saveStateToStorage();
+    }
+
+    function removeEmptyInsertedRow(input) {
+      const pageWrapper = input.closest('.page-wrapper');
+      const allInputs = Array.from(pageWrapper.querySelectorAll('.student-name-input'));
+      const targetIdx = allInputs.indexOf(input);
+
+      if (targetIdx === -1) return false;
+
+      for (let i = targetIdx; i < allInputs.length - 1; i++) {
+        allInputs[i].value = allInputs[i + 1].value;
+        adjustFontSize(allInputs[i]);
+      }
+      allInputs[allInputs.length - 1].value = '';
+
+      if (targetIdx > 0) {
+        focusAtEnd(allInputs[targetIdx - 1]);
+      } else {
+        allInputs[0].focus();
+      }
+
+      saveStateToStorage();
+      return true;
+    }
+
+    function focusAtEnd(input) {
+      input.focus();
+      const len = input.value.length;
+      input.setSelectionRange(len, len);
+    }
+
+    document.addEventListener('keydown', function(e) {
+      const active = document.activeElement;
+      if (!active) return;
+
+      if (e.key === 'Enter') {
+        if (active.classList.contains('class-input')) {
+          e.preventDefault();
+          const wrapper = active.closest('.page-wrapper');
+          wrapper.querySelector('.section-input')?.focus();
+          return;
+        }
+
+        if (active.classList.contains('section-input')) {
+          e.preventDefault();
+          const wrapper = active.closest('.page-wrapper');
+          wrapper.querySelector('.student-name-input')?.focus();
+          return;
+        }
+
+        if (active.classList.contains('student-name-input')) {
+          e.preventDefault();
+
+          if (e.shiftKey || e.ctrlKey) {
+            insertEmptyRow(active);
+            return;
+          }
+
+          const wrapper = active.closest('.page-wrapper');
+          const inputs = Array.from(wrapper.querySelectorAll('.student-name-input'));
+          const idx = inputs.indexOf(active);
+
+          if (idx !== -1 && idx + 1 < inputs.length) {
+            inputs[idx + 1].focus();
+            inputs[idx + 1].select();
+          }
+        }
+      }
+
+      if (e.key === 'Backspace') {
+        if (active.classList.contains('student-name-input')) {
+          if (active.value === '' && active.selectionStart === 0 && active.selectionEnd === 0) {
+            const wrapper = active.closest('.page-wrapper');
+            const inputs = Array.from(wrapper.querySelectorAll('.student-name-input'));
+            const idx = inputs.indexOf(active);
+
+            let hasTextBelow = false;
+            for (let i = idx + 1; i < inputs.length; i++) {
+              if (inputs[i].value.trim() !== '') {
+                hasTextBelow = true;
+                break;
+              }
+            }
+
+            if (hasTextBelow) {
+              e.preventDefault();
+              removeEmptyInsertedRow(active);
+              return;
+            }
+
+            if (idx > 0) {
+              const prevInput = inputs[idx - 1];
+              if (prevInput.value.trim() !== '') {
+                e.preventDefault();
+                prevInput.value = prevInput.value.slice(0, -1);
+                adjustFontSize(prevInput);
+                focusAtEnd(prevInput);
+                saveStateToStorage();
+              } else {
+                e.preventDefault();
+              }
+            } else if (idx === 0) {
+              const section = wrapper.querySelector('.section-input');
+              if (section && section.value.trim() !== '') {
+                e.preventDefault();
+                section.value = section.value.slice(0, -1);
+                focusAtEnd(section);
+                saveStateToStorage();
+              } else {
+                e.preventDefault();
+              }
+            }
+          }
+        }
+
+        if (active.classList.contains('section-input')) {
+          if (active.value === '' && active.selectionStart === 0 && active.selectionEnd === 0) {
+            const wrapper = active.closest('.page-wrapper');
+            const classInput = wrapper.querySelector('.class-input');
+            if (classInput && classInput.value.trim() !== '') {
+              e.preventDefault();
+              classInput.value = classInput.value.slice(0, -1);
+              focusAtEnd(classInput);
+              saveStateToStorage();
+            } else {
+              e.preventDefault();
+            }
+          }
+        }
+      }
+    });
+
+    document.addEventListener('input', function(e) {
+      if (e.target.tagName === 'INPUT') {
+        if (e.target.classList.contains('student-name-input')) {
+          adjustFontSize(e.target);
+        }
+        saveStateToStorage();
+      }
+    });
+
+    function updateBookPageNumbers() {
+      const wrappers = document.querySelectorAll('.page-wrapper');
+      wrappers.forEach((wrap, index) => {
+        const pageNum = index + 1;
+        wrap.setAttribute('data-page-num', pageNum);
+        const numElem = wrap.querySelector('.book-page-number');
+        if (numElem) {
+          numElem.innerText = `- ${pageNum} -`;
+        }
+      });
+      saveStateToStorage();
+    }
+
+    function addNewPage(data = null) {
+      const root = document.getElementById('pages-root');
+      const currentCount = root.querySelectorAll('.page-wrapper').length;
+      const newPageWrapper = createPageElement(currentCount + 1, data);
+      root.appendChild(newPageWrapper);
+
+      saveStateToStorage();
+
+      if (!data) {
+        newPageWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function deletePage(btn) {
+      const wrapper = btn.closest('.page-wrapper');
+      const wrappersCount = document.querySelectorAll('.page-wrapper').length;
+
+      if (wrappersCount <= 1) {
+        alert("لا يمكن حذف آخر شعبة متبقية!");
+        return;
+      }
+
+      if (confirm("هل أنت متأكد من حذف هذه الشعبة ببياناتها؟")) {
+        wrapper.remove();
+        updateBookPageNumbers();
+      }
+    }
+
+    function resetAllToOriginal() {
+      if (confirm("⚠️ هل أنت متأكد من رغبتك في استعادة بيانات الـ 10 شُعب الأصلية؟\nسيتم إلغاء أي تعديلات قمت بها.")) {
+        localStorage.removeItem(STORAGE_KEY);
+        const root = document.getElementById('pages-root');
+        root.innerHTML = '';
+        initialPdfData.forEach(pData => {
+          addNewPage(pData);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function loadSavedPages() {
+      const root = document.getElementById('pages-root');
+      root.innerHTML = '';
+      
+      const savedFont = localStorage.getItem(FONT_STORAGE_KEY);
+      if (savedFont) {
+        changeWebsiteFont(savedFont, false);
+      }
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const pagesData = JSON.parse(saved);
+          if (Array.isArray(pagesData) && pagesData.length > 0) {
+            pagesData.forEach(pData => addNewPage(pData));
+            updateStudentStats();
+            return;
+          }
+        } catch (e) {
+          console.error("فشل استرجاع البيانات:", e);
+        }
+      }
+
+      initialPdfData.forEach(pData => {
+        addNewPage(pData);
+      });
+      updateStudentStats();
+    }
+
+    function prepareForCapture(containerElement) {
+      containerElement.querySelectorAll('input').forEach(input => {
+        input.setAttribute('value', input.value);
+        input.placeholder = '';
+        if (input.classList.contains('student-name-input')) {
+          adjustFontSize(input);
+        }
+      });
+    }
+
+    function restoreAfterCapture(containerElement) {
+      containerElement.querySelectorAll('input').forEach(input => {
+        const defaultPh = input.getAttribute('data-default-placeholder');
+        if (defaultPh) {
+          input.placeholder = defaultPh;
+        }
+      });
+    }
+
+    function isPageModified(pageContainer) {
+      const classInput = pageContainer.querySelector('.class-input');
+      const sectionInput = pageContainer.querySelector('.section-input');
+      
+      if (classInput && classInput.value.trim() !== '') return true;
+      if (sectionInput && sectionInput.value.trim() !== '') return true;
+
+      const studentInputs = pageContainer.querySelectorAll('.student-name-input');
+      for (let input of studentInputs) {
+        if (input.value.trim() !== '') {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /* التقاط صورة PNG بدون اقتصاص على شاشات الجوال */
+    async function captureAndDownloadPage(btn) {
+      const pageWrapper = btn.closest('.page-wrapper');
+      const pageContainer = pageWrapper.querySelector('.page-container');
+      const pageNum = pageWrapper.getAttribute('data-page-num') || '1';
+
+      prepareForCapture(pageContainer);
+
+      try {
+        const canvas = await html2canvas(pageContainer, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          windowWidth: 1200 // يمنع تشوه واقتصاص أبعاد الورقة على الهواتف
+        });
+
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = `قائمة_الطلاب_صفحة_${pageNum}.png`;
+        link.href = image;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        alert("حدث خطأ أثناء حفظ الصفحة كصورة.");
+      } finally {
+        restoreAfterCapture(pageContainer);
+      }
+    }
+
+    /* تصدير PDF لكافة الشُعب المعدلة */
+    async function downloadModifiedPagesAsPDF() {
+      const btn = document.querySelector('.master-toolbar .btn-all-pdf');
+      const allContainers = document.querySelectorAll('.page-container');
+      
+      const modifiedList = [];
+      allContainers.forEach((container, idx) => {
+        if (isPageModified(container)) {
+          modifiedList.push({ index: idx + 1, container });
+        }
+      });
+
+      if (modifiedList.length === 0) {
+        alert("⚠️ لم تقم بتعديل أو كتابة أي بيانات في أي شعبة حتى الآن!");
+        return;
+      }
+
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التصدير...`;
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+
+      try {
+        for (let i = 0; i < modifiedList.length; i++) {
+          const item = modifiedList[i];
+          prepareForCapture(item.container);
+
+          const canvas = await html2canvas(item.container, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            windowWidth: 1200
+          });
+
+          restoreAfterCapture(item.container);
+
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+          if (i > 0) {
+            pdf.addPage('a4', 'p');
+          }
+
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+        }
+
+        pdf.save(`قوائم_طلاب_مدرسة_ذات_الصواري_${modifiedList.length}_صفحات.pdf`);
+      } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء تصدير ملف الـ PDF.");
+      } finally {
+        modifiedList.forEach(item => restoreAfterCapture(item.container));
+        btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> تصدير PDF`;
+      }
+    }
+
+    /* تصدير ملف Word (.docx) بنفس قالب سجل الدرجات */
+    function exportToWordDocx() {
+      const wrappers = document.querySelectorAll('.page-wrapper');
+      if (wrappers.length === 0) {
+        alert("لا توجد صفحات لتصديرها!");
+        return;
+      }
+
+      let allPagesHtml = '';
+
+      wrappers.forEach((wrap, pageIdx) => {
+        const classVal = wrap.querySelector('.class-input')?.value || 'السابع';
+        const sectionVal = wrap.querySelector('.section-input')?.value || `الشعبة ${pageIdx + 1}`;
+        const studentInputs = Array.from(wrap.querySelectorAll('.student-name-input'));
+        
+        const filledStudents = [];
+        studentInputs.forEach((input) => {
+          if (input.value && input.value.trim() !== '') {
+            filledStudents.push(input.value.trim());
+          }
+        });
+
+        let studentRows = '';
+        if (filledStudents.length > 0) {
+          filledStudents.forEach((studentName, sIdx) => {
+            studentRows += `
+              <tr style="height: 24px;">
+                <td style="border: 1px solid #000; text-align: center; font-weight: bold; width: 35px;">${sIdx + 1}</td>
+                <td style="border: 1px solid #000; text-align: right; padding-right: 6px; font-weight: 600; width: 220px;">${escapeHtml(studentName)}</td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 65px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 85px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 65px;"></td>
+              </tr>
+            `;
+          });
+        } else {
+          for (let k = 1; k <= 30; k++) {
+            studentRows += `
+              <tr style="height: 24px;">
+                <td style="border: 1px solid #000; text-align: center; font-weight: bold; width: 35px;">${k}</td>
+                <td style="border: 1px solid #000; text-align: right; padding-right: 6px; width: 220px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 65px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 85px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 55px;"></td>
+                <td style="border: 1px solid #000; text-align: center; width: 65px;"></td>
+              </tr>
+            `;
+          }
+        }
+
+        const pageBreakStyle = pageIdx > 0 ? 'page-break-before: always;' : '';
+
+        allPagesHtml += `
+          <div style="${pageBreakStyle} margin-bottom: 30px;">
+            <table style="width: 100%; border: none; margin-bottom: 12px; font-weight: bold; font-size: 14px; direction: rtl;">
+              <tr>
+                <td style="width: 33%; text-align: right; vertical-align: top; line-height: 1.6;">
+                  مديرية التربية و التعليم في حمص<br>
+                  مدرسة : ذات الصواري ح2
+                </td>
+                <td style="width: 34%; text-align: center; vertical-align: top; line-height: 1.6;">
+                  المادة : ........................<br>
+                  الدرجة : ........................
+                </td>
+                <td style="width: 33%; text-align: left; vertical-align: top; line-height: 1.6;">
+                  الصف : ${escapeHtml(classVal)}<br>
+                  الشعبة: ${escapeHtml(sectionVal)}
+                </td>
+              </tr>
+            </table>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; direction: rtl;" border="1">
+              <thead>
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                  <th rowspan="3" style="border: 1px solid #000; width: 35px; vertical-align: middle;">م</th>
+                  <th rowspan="3" style="border: 1px solid #000; width: 220px; vertical-align: middle;">الاسم الثلاثي</th>
+                  <th style="border: 1px solid #000; width: 55px;">شفهي</th>
+                  <th style="border: 1px solid #000; width: 55px;">وظائف</th>
+                  <th style="border: 1px solid #000; width: 55px;">مذاكرة</th>
+                  <th style="border: 1px solid #000; width: 65px;">المجموع</th>
+                  <th style="border: 1px solid #000; width: 85px;">امتحان الفصل الأول</th>
+                  <th colspan="2" style="border: 1px solid #000; width: 120px;">محصلة فصل الأول</th>
+                </tr>
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                  <th style="border: 1px solid #000;">25%</th>
+                  <th style="border: 1px solid #000;">25%</th>
+                  <th style="border: 1px solid #000;">50%</th>
+                  <th style="border: 1px solid #000;">100%</th>
+                  <th style="border: 1px solid #000;">100%</th>
+                  <th colspan="2" style="border: 1px solid #000;">100%</th>
+                </tr>
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                  <th style="border: 1px solid #000;"></th>
+                  <th style="border: 1px solid #000;"></th>
+                  <th style="border: 1px solid #000;"></th>
+                  <th style="border: 1px solid #000;"></th>
+                  <th style="border: 1px solid #000;"></th>
+                  <th style="border: 1px solid #000; width: 55px;">رقماً</th>
+                  <th style="border: 1px solid #000; width: 65px;">كتابتاً</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${studentRows}
+              </tbody>
+            </table>
+          </div>
+        `;
+      });
+
+      const wordDocument = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset='utf-8'>
+          <title>سجل درجات الطلاب</title>
+          <!--[if gte mso 9]>
+          <xml>
+            <w:WordDocument>
+              <w:View>Print</w:View>
+              <w:Zoom>100</w:Zoom>
+              <w:DoNotOptimizeForBrowser/>
+            </w:WordDocument>
+          </xml>
+          <![endif]-->
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 1.5cm 1cm 1.5cm 1cm;
+              mso-page-orientation: portrait;
+            }
+            body {
+              font-family: 'Traditional Arabic', 'Arial', sans-serif;
+              direction: rtl;
+            }
+            table {
+              border-collapse: collapse;
+            }
+          </style>
+        </head>
+        <body dir="rtl">
+          ${allPagesHtml}
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', wordDocument], {
+        type: 'application/msword'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = "سجل_درجات_الطلاب_ذات_الصواري.doc";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+    }
+
+    // تشغيل البرنامج عند التحميل
+    loadSavedPages();
+  </script>
+</body>
+</html>
